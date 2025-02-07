@@ -5,25 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Testes de Qualidade de TVs</title>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js"
-        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js";
+        // Importação dos módulos necessários do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-analytics.js";
+        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js";
 
-        // Firebase configuração da sua aplicação web
-        var firebaseConfig = {
-            apiKey: "AIzaSyAzqJQHycaiiufjL0GZb9RyFJetnAC8LI0",
-            authDomain: "dbnuvemwebapp.firebaseapp.com",       
-            projectId: "dbnuvemwebapp",
-            storageBucket: "dbnuvemwebapp.appspot.com",
-            messagingSenderId: "727075935521",
-            appId: "1:727075935521:web:3be194c3303ead81ceda60",
-            measurementId: "G-MREJKJJT0M"
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6hjFoK8ZtY_3t8QQIXOumnDFngicYWdE",
+            authDomain: "dbnuvemwebapp-519fc.firebaseapp.com",
+            projectId: "dbnuvemwebapp-519fc",
+            storageBucket: "dbnuvemwebapp-519fc.firebasestorage.app",
+            messagingSenderId: "861671131474",
+            appId: "1:861671131474:web:5c8b68ed9056b0dbeed28b",
+            measurementId: "G-3WBW6CMKSS"
         };
 
-        // Inicializar o Firebase
+        // Inicialização do Firebase
         const app = initializeApp(firebaseConfig);
-
-        // Obter a referencia do banco de dados
-        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app); // Inicialização do Firestore
 
         // Referências aos elementos do formulário
         const modeloInput = document.getElementById("modelo");
@@ -32,44 +33,51 @@
         const salvarButton = document.getElementById("salvar");
         const dadosContainer = document.getElementById("dados-container");
 
-        // Atualizar os dados mostrados na página
+        // Função para atualizar os dados exibidos na página
         function atualizarDados() {
-            dadosContainer.innerHTML = ""; // Limpar o conteúdo existente
+            dadosContainer.innerHTML = ""; // Limpa o conteúdo existente
 
-            // Obter os dados da coleção "testes"
-            getDocs(collection(db, "testes")).then((querySnapshot) => {
+            // Obter os dados da coleção "tvs"
+            getDocs(collection(db, "tvs")).then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const item = document.createElement("div");
                     item.innerHTML = `<strong>Modelo:</strong> ${data.modelo}, <strong>Aprovadas:</strong> ${data.aprovadas}, <strong>Reprovadas:</strong> ${data.reprovadas}`;
                     dadosContainer.appendChild(item);
                 });
+            }).catch((error) => {
+                console.error("Erro ao carregar os dados: ", error);
             });
         }
 
-        // Manipulador de clique do botão
+        // Manipulador de clique do botão "Salvar"
         salvarButton.addEventListener("click", () => {
             const modelo = modeloInput.value;
             const aprovadas = parseInt(aprovadasInput.value);
             const reprovadas = parseInt(reprovadasInput.value);
 
-            // Referência à coleção "testes" no Firestore
-            const testesCollection = collection(db, "testes");
+            if (!modelo || isNaN(aprovadas) || isNaN(reprovadas)) {
+                alert("Por favor, preencha todos os campos corretamente.");
+                return;
+            }
+
+            // Referência à coleção "tvs" no Firestore
+            const tvsCollection = collection(db, "tvs");
 
             // Adicionar os dados ao Firestore
-            addDoc(testesCollection, {
+            addDoc(tvsCollection, {
                 modelo: modelo,
                 aprovadas: aprovadas,
                 reprovadas: reprovadas
             }).then(() => {
                 alert("Dados salvos com sucesso!");
-                atualizarDados(); // Atualizar os dados mostrados na página
+                atualizarDados(); // Atualizar os dados exibidos na página
             }).catch((error) => {
                 console.error("Erro ao salvar os dados: ", error);
             });
         });
 
-        // Atualizar os dados mostrados na página ao carregar
+        // Atualizar os dados ao carregar a página
         window.addEventListener("load", () => {
             atualizarDados();
         });
@@ -89,3 +97,4 @@
     <div id="dados-container"></div>
 </body>
 </html>
+
