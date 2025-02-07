@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Testes de Qualidade de TVs</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Importação do Chart.js -->
+
     <script type="module">
         // Importação dos módulos necessários do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js";
@@ -32,21 +34,76 @@
         const reprovadasInput = document.getElementById("reprovadas");
         const salvarButton = document.getElementById("salvar");
         const dadosContainer = document.getElementById("dados-container");
+        const ctx = document.getElementById("grafico").getContext("2d"); // Canvas do gráfico
 
-        // Função para atualizar os dados exibidos na página
+        let grafico; // Variável para armazenar o gráfico
+
+        // Função para atualizar os dados e o gráfico
         function atualizarDados() {
             dadosContainer.innerHTML = ""; // Limpa o conteúdo existente
 
             // Obter os dados da coleção "tvs"
             getDocs(collection(db, "tvs")).then((querySnapshot) => {
+                let modelos = [];
+                let aprovadas = [];
+                let reprovadas = [];
+
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
+                    modelos.push(data.modelo);
+                    aprovadas.push(data.aprovadas);
+                    reprovadas.push(data.reprovadas);
+
+                    // Exibir os dados na tela
                     const item = document.createElement("div");
-                    item.innerHTML = `<strong>Modelo:</strong> ${data.modelo}, <strong>Aprovadas:</strong> ${data.aprovadas}, <strong>Reprovadas:</strong> ${data.reprovadas}`;
+                    item.innerHTML = `<strong>Modelo:</strong> ${data.modelo}, 
+                                      <strong>Aprovadas:</strong> ${data.aprovadas}, 
+                                      <strong>Reprovadas:</strong> ${data.reprovadas}`;
                     dadosContainer.appendChild(item);
                 });
+
+                // Atualiza o gráfico
+                atualizarGrafico(modelos, aprovadas, reprovadas);
             }).catch((error) => {
                 console.error("Erro ao carregar os dados: ", error);
+            });
+        }
+
+        // Função para atualizar o gráfico com novos dados
+        function atualizarGrafico(modelos, aprovadas, reprovadas) {
+            if (grafico) {
+                grafico.destroy(); // Remove o gráfico anterior para evitar sobreposição
+            }
+
+            grafico = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: modelos,
+                    datasets: [
+                        {
+                            label: "Aprovadas",
+                            data: aprovadas,
+                            backgroundColor: "rgba(75, 192, 192, 0.7)",
+                            borderColor: "rgba(75, 192, 192, 1)",
+                            borderWidth: 1
+                        },
+                        {
+                            label: "Reprovadas",
+                            data: reprovadas,
+                            backgroundColor: "rgba(255, 99, 132, 0.7)",
+                            borderColor: "rgba(255, 99, 132, 1)",
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
             });
         }
 
@@ -71,7 +128,7 @@
                 reprovadas: reprovadas
             }).then(() => {
                 alert("Dados salvos com sucesso!");
-                atualizarDados(); // Atualizar os dados exibidos na página
+                atualizarDados(); // Atualizar os dados e o gráfico
             }).catch((error) => {
                 console.error("Erro ao salvar os dados: ", error);
             });
@@ -95,6 +152,10 @@
 
     <h2>Dados Armazenados:</h2>
     <div id="dados-container"></div>
+
+    <h2>Gráfico de Aprovação e Reprovação</h2>
+    <canvas id="grafico"></canvas> <!-- Canvas do gráfico -->
+
 </body>
 </html>
 
